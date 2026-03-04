@@ -1,0 +1,372 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams, useSearchParams, useRouter } from "next/navigation";
+
+type NvidiaOption = {
+  value: string;
+  label: string;
+};
+
+type GeoCodes = {
+  countryCode: string;
+  stateCode: string;
+  ip: string;
+};
+
+const NVIDIA_OPTIONS: NvidiaOption[] = [
+  { value: "", label: "Choose a product" },
+  { value: "Vera Rubin NVL72 Compute Tray", label: "Vera Rubin NVL72 Compute Tray" },
+  { value: "HGX Rubin NVL8", label: "HGX Rubin NVL8" },
+  { value: "Vera HPM for HGX Rubin", label: "Vera HPM for HGX Rubin" },
+  { value: "RTX PRO 4500 BSE AC PCIe", label: "RTX PRO 4500 BSE AC PCIe" },
+  { value: "RTX PRO 6000 BSE", label: "RTX PRO 6000 BSE" },
+  { value: "GB200 Superchip", label: "GB200 Superchip" },
+  { value: "HGX H200 8way", label: "HGX H200 8way" },
+  { value: "HGX B300 8way AC", label: "HGX B300 8way AC" },
+  { value: "Jetson Thor", label: "Jetson Thor" },
+];
+
+const CORRECT_ANSWERS = [
+  "Vera Rubin NVL72 Compute Tray", // Station 1
+  "RTX PRO 4500 BSE AC PCIe", // Station 2
+  "Jetson Thor", // Station 3
+];
+
+function decodeGeoCodes(encoded: string): GeoCodes | null {
+  try {
+    const base64 = encoded.replace(/-/g, "+").replace(/_/g, "/");
+    const paddingNeeded = (4 - (base64.length % 4)) % 4;
+    const padded = base64 + "=".repeat(paddingNeeded);
+    const decoded = atob(padded);
+    const [countryCode, stateCode, ip] = decoded.split(":");
+    if (!countryCode || !stateCode || !ip) return null;
+    return { countryCode, stateCode, ip };
+  } catch {
+    return null;
+  }
+}
+
+export default function StationQuestionPage() {
+  // Route is /[encoded]/station where "encoded" contains country:state:ip
+  const { encoded } = useParams<{ encoded: string }>();
+
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const [stationIndex, setStationIndex] = useState(1);
+
+  const stepFraction = `${stationIndex}/3`;
+  const stepLabel = `Station ${stationIndex} of 3`;
+  const correctAnswer =
+    CORRECT_ANSWERS[stationIndex - 1] ?? CORRECT_ANSWERS[0];
+
+  const [selected, setSelected] = useState<string>(NVIDIA_OPTIONS[0].value);
+  const [status, setStatus] = useState<"idle" | "correct" | "incorrect">(
+    "idle",
+  );
+  const [isVerified, setIsVerified] = useState(false);
+
+  useEffect(() => {
+    const stationParam = searchParams.get("station") ?? "1";
+    const n = Number.parseInt(stationParam, 10);
+    if (Number.isNaN(n)) {
+      setStationIndex(1);
+      return;
+    }
+
+    const clamped = Math.min(Math.max(n, 1), 3);
+    setStationIndex(clamped);
+  }, [searchParams]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function verifyAccess() {
+      try {
+        const decoded = decodeGeoCodes(encoded);
+        if (!decoded) {
+          router.replace("/");
+          return;
+        }
+
+        const res = await fetch("https://ipapi.co/json/");
+        if (!res.ok) {
+          router.replace("/");
+          return;
+        }
+
+        const data = await res.json();
+        const currentCountry = data.country_code || "";
+        const currentRegion = data.region_code || "";
+        const currentIp = data.ip || "";
+
+        const matches =
+          decoded.countryCode === currentCountry &&
+          decoded.stateCode === currentRegion &&
+          decoded.ip === currentIp;
+
+        if (!matches) {
+          router.replace("/");
+          return;
+        }
+
+        if (!cancelled) {
+          setIsVerified(true);
+        }
+      } catch {
+        router.replace("/");
+      }
+    }
+
+    verifyAccess();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [encoded, router]);
+
+  const isDisabled = selected === NVIDIA_OPTIONS[0].value;
+
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+
+    const isCorrect = selected === correctAnswer;
+    setStatus(isCorrect ? "correct" : "incorrect");
+
+    if (isCorrect && stationIndex === 3) {
+      router.push(`/${encoded}/results`);
+    }
+  };
+
+  const handleNextStation = () => {    
+    if (stationIndex < 3) {
+      const next = stationIndex + 1;
+      setStatus("idle");
+      router.push(`/${encoded}/station?station=${next}`);
+    }
+  };
+
+  if (!isVerified) {
+    return null;
+  }
+
+  return (
+    <div className="min-h-screen bg-[rgb(13,_11,_26)] text-white flex items-center justify-center px-4 py-8">
+      <main className="w-full max-w-[320px]">
+        <div className="relative bg-[rgb(13,_11,_26)] pt-0 px-[20px] pb-[20px] flex flex-col items-center">
+          {/* Header */}
+          <div className="w-full flex justify-between items-center mb-[20px]">
+            <div className="flex items-center gap-[7px]">
+              <div className="w-[26px] h-[26px] rounded-[6px] bg-[linear-gradient(135deg,_rgb(124,_58,_237),_rgb(159,_103,_255))] flex items-center justify-center text-[13px] font-extrabold text-[rgb(255,_255,_255)] tracking-[-0.5px]">K</div>
+              <span className="font-sans font-extrabold text-[16px] text-[rgb(241,_245,_249)] tracking-[-0.3px]">kiro</span>
+            </div>
+            <div className="flex gap-[8px] items-center">
+              {[...Array(3)].map((_, i) => {
+                const num = i + 1;
+                const isCurrentOrPast = num <= stationIndex; // fill for current + previous
+                return (
+                  <div
+                    key={num}
+                    className={
+                      isCurrentOrPast
+                        ? "w-[10px] h-[10px] rounded-[50%] bg-[rgb(167,_139,_250)] border-[1.5px] border-[solid] border-[rgb(167,_139,_250)] box-shadow-[rgba(124,_58,_237,_0.18)_0px_0px_8px] transition-[0.3s]"
+                        : "w-[10px] h-[10px] rounded-[50%] bg-[transparent] border-[1.5px] border-[solid] border-[rgb(100,_116,_139)] box-shadow-[none] transition-[0.3s]"
+                    }
+                  />
+                );
+              })}
+              <span className="font-mono text-[11px] text-[rgb(148,_163,_184)] ml-[4px]">
+                {stepFraction}
+              </span>
+            </div>
+          </div>
+
+          {status === "idle" && (
+            <section className="w-full">
+              {/* Question Title */}
+              <div className="w-full bg-[rgba(124,_58,_237,_0.18)] rounded-[12px] border-[1px] border-[solid] border-[rgba(124,_58,_237,_0.3)] px-[16px] py-[14px] mb-[20px] flex items-center gap-[12px]">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+                <div>
+                  <p className="font-mono text-[10px] text-[rgb(167,_139,_250)] uppercase tracking-[1.5px] mb-[2px]">
+                    {stepLabel}
+                  </p>
+                  <h1 className="font-sans text-[20px] font-extrabold text-[rgb(241,_245,_249)] tracking-[-0.4px] leading-[1.15]">What Did You Find?</h1>
+                </div>
+              </div>
+
+              <p className="font-sans text-[13px] text-[rgb(148,_163,_184)] mt-0 mx-0 mb-[24px] leading-[1.6]">
+                You've discovered a piece of NVIDIA hardware hidden in the maze. Can you identify it?
+              </p>
+
+              {/* Question card */}
+              <form onSubmit={handleSubmit}>
+                <label className="text-[10px] text-[rgb(100,_116,_139)] uppercase tracking-[1.5px] block mb-[8px]">
+                  Select the hardware
+                </label>
+
+                <div className="relative w-full mb-[20px]">
+                  <select
+                    value={selected}
+                    onChange={(e) => {
+                      setSelected(e.target.value);
+                      setStatus("idle");
+                    }}
+                    className="
+                      w-full
+                      bg-[rgb(30,_26,_56)]
+                      rounded-[8px]
+                      border border-[rgb(42,37,71)]
+                      px-[14px] py-[12px]
+                      pr-8
+                      font-sans text-[13px] text-[rgb(100,_116,_139)]
+                      appearance-none
+                      focus-visible:border-[rgb(167,_139,_250)]
+                      focus-visible:outline-none
+                    "
+                  >
+                    {NVIDIA_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+
+                  {/* custom caret positioned where you want */}
+                  <svg
+                    className="absolute right-[14px] top-1/2 -translate-y-1/2"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#A78BFA"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  >
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isDisabled}
+                  className={
+                    isDisabled
+                      ? "w-full px-0 py-[14px] rounded-[10px] border-none bg-[rgb(30,_26,_56)] text-[rgb(100,_116,_139)] font-sans text-[14px] font-bold cursor-default opacity-50 [box-shadow:none]"
+                      : "w-full px-0 py-[14px] rounded-[10px] border-none bg-[linear-gradient(135deg,_rgb(124,_58,_237),_rgb(159,_103,_255))] text-[rgb(255,_255,_255)] font-sans text-[14px] font-bold cursor-pointer [box-shadow:rgba(124,_58,_237,_0.35)_0px_4px_20px]"
+                  }
+                >
+                  Submit Answer
+                </button>
+              </form>
+            </section>
+          )}
+
+          {/* Correct state */}
+          {status === "correct" && stationIndex < 3 && (
+            <section className="w-full">
+              {/* Success card */}
+              {stationIndex === 1 && (
+                <div className="bg-[rgba(110,_231,_183,_0.12)] rounded-[16px] border-[1px] border-[solid] border-[rgba(110,231,183,0.25)] p-[28px] text-center mb-[20px]">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#6EE7B7" strokeWidth="2" strokeLinecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                  <h2 className="font-sans text-[20px] font-extrabold text-[rgb(110,_231,_183)] mt-[12px] mx-0 mb-[8px]">Nice detective work!</h2>
+                  <p className="text-[13px] text-[rgb(148,_163,_184)] m-0 leading-normal">
+                    You correctly identified the
+                    <br/>
+                    <strong className="text-[rgb(241,_245,_249)]">Vera Rubin NVL72 Compute Tray</strong>
+                  </p>
+                </div>
+              )}
+              {stationIndex === 2 && (
+                <div className="bg-[rgba(124,_58,_237,_0.18)] rounded-[16px] border-[1px] border-[solid] border-[rgba(124,58,237,0.3)] p-[28px] text-center mb-[20px]">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" strokeWidth="2" strokeLinecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                  <h2 className="font-sans text-[20px] font-extrabold text-[rgb(167,_139,_250)] mt-[12px] mx-0 mb-[8px]">Already cracked this one!</h2>
+                  <p className="text-[13px] text-[rgb(148,_163,_184)] m-0 leading-normal">
+                    You've already identified the hardware at Station 1. Keep moving through the maze.
+                  </p>
+                </div>
+              )}
+
+              {/* Progress card */}
+              {stationIndex === 1 && (
+                <div className="bg-[rgb(30,_26,_56)] rounded-[12px] border-[1px] border-[solid] border-[rgb(42,37,71)] p-[16px] mb-[20px]">
+                  <p className="text-[10px] text-[rgb(100,_116,_139)] uppercase tracking-[1.5px] mb-[12px]">
+                    Your progress
+                  </p>
+                  <div className="space-y-[6px] text-[12px]">
+                    {[1, 2, 3].map((num) => {
+                      const isCurrent = num === stationIndex;
+                      const isDone = isCurrent; // for now, mark only this station as done
+                      const label =
+                        num === stationIndex
+                          ? `Station ${num} — ${correctAnswer}`
+                          : `Station ${num} — Not found yet`;
+                      return (
+                        <div
+                          key={num}
+                          className="flex items-center gap-[10px] mb-[8px] opacity-100"
+                        >
+                          {isDone && (
+                            <>
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6EE7B7" strokeWidth="2" strokeLinecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                              <span className="text-[12px] text-[rgb(241,_245,_249)]">{label}</span>
+                            </>
+                          )}
+                          {!isDone && (
+                            <>
+                              <div className="w-[16px] h-[16px] rounded-[50%] border-[1.5px] border-[solid] border-[rgb(100,_116,_139)]"></div>
+                              <span className="text-[12px] text-[rgb(100,_116,_139)]">{label}</span>
+                            </>
+                          )}                        
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {stationIndex === 2 && (
+                <div className="font-mono text-[10px] text-[rgb(100,_116,_139)] uppercase tracking-[1.5px] mb-[12px] text-center">2 of 3 found</div>
+              )}
+
+              <button
+                type="button"
+                onClick={handleNextStation}
+                className="w-full px-0 py-[14px] rounded-[10px] border-[none] bg-[linear-gradient(135deg,_rgb(124,_58,_237),_rgb(159,_103,_255))] font-sans text-[rgb(255,_255,_255)] text-[14px] font-bold cursor-pointer [box-shadow:rgba(124,_58,_237,_0.3)_0px_4px_20px]"
+              >
+                {stationIndex === 1 && "Continue to Next Station →"}
+                {stationIndex === 2 && "Find the Last Station →"}
+              </button>
+            </section>
+          )}
+
+          {/* Incorrect state */}
+          {status === "incorrect" && (
+            <section className="w-full">
+              <div className="bg-[rgba(248,_113,_113,_0.1)] rounded-[16px] border-[1px] border-[solid] border-[rgba(248,113,113,0.25)] p-[28px] text-center mb-[20px]">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#F87171" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"></circle><path d="m15 9-6 6M9 9l6 6"></path></svg>
+                <h2 className="font-sans text-[20px] font-extrabold text-[rgb(248,_113,_113)] mt-[12px] mx-0 mb-[8px]">That's not it</h2>
+                <p className="text-[13px] text-[rgb(148,_163,_184)] m-0 leading-normal">
+                  Take another look around the station
+                  <br/>
+                  and try again.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setSelected(NVIDIA_OPTIONS[0].value);
+                  setStatus("idle");
+                }}
+                className="w-full px-0 py-[14px] rounded-[10px] bg-transparent border-[1px] border-[solid] border-[rgba(124,58,237,0.3)] font-sans text-[rgb(167,_139,_250)] text-[14px] font-bold cursor-pointer"
+              >
+                Try Again
+              </button>
+            </section>
+          )}
+        </div>
+      </main>
+    </div>
+  );
+}
