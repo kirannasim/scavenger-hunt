@@ -100,7 +100,7 @@ export default function QRPage() {
           </div>
 
           <p className="text-[10px] text-center text-[rgb(100,_116,_139)] mt-[12px]">
-            Tip: Open this page on a desktop, then capture the QR to place it at
+            Tip: Open this page on your phone, then capture the QR to place it at
             the physical station.
           </p>
         </div>
