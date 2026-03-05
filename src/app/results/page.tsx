@@ -16,7 +16,7 @@ export default function ResultsPage() {
           </div>
 
           <section className="text-center space-y-2 mb-[20px]">
-            <h1 className="font-sans text-[24px] font-extrabold text-[rgb(241,_245,_249)] mt-0 mx-0 tracking-[-0.5px] leading-[1.15]">
+            <h1 className="font-aws-diatype-rounded text-[24px] font-bold text-[rgb(241,_245,_249)] mt-0 mx-0 tracking-[-0.5px] leading-[1.15]">
               You found them all!
             </h1>
             <p className="text-[11px] text-[rgb(148,_163,_184)] mt-[6px]">

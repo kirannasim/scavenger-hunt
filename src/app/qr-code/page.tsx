@@ -55,31 +55,31 @@ export default function QRPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[rgb(13,_11,_26)] text-white flex items-center justify-center px-4 py-8">
+    <div className="min-h-screen bg-[#000000] text-white flex items-center justify-center px-4 py-8">
       <main className="w-full max-w-[320px]">
-        <div className="relative bg-[rgb(13,_11,_26)] pt-0 px-[20px] pb-[20px] flex flex-col items-center">
+        <div className="relative pt-0 px-[20px] pb-[20px] flex flex-col items-center">
           {/* Icon */}
           <div className="relative w-[120px] h-[120px] rounded-[28px] mt-[8px] mx-[auto] mb-[20px] bg-[rgb(124,_58,_237)] flex items-center justify-center [box-shadow:rgba(124,_58,_237,_0.45)_0px_8px_40px,_rgba(124,_58,_237,_0.15)_0px_0px_80px] overflow-hidden">
             <Image
               src="/logo.svg"
               alt="Haunted House Scavenger Hunt logo"
-              width={120}
-              height={120}
+              width={60}
+              height={60}
               priority
             />
           </div>
 
           {/* Title and description */}
           <section className="text-center space-y-2">
-            <h1 className="font-sans text-[24px] font-extrabold text-[rgb(241,_245,_249)] mt-0 mx-0 mb-[4px] tracking-[-0.5px] leading-[1.15]">
+            <h1 className="font-aws-diatype-rounded text-[24px] font-bold text-[rgb(241,_245,_249)] mt-0 mx-0 mb-[4px] tracking-[-0.5px] leading-[1.15]">
               Haunted House
               <br />
               Scavenger Hunt
             </h1>
-            <p className="text-[10px] text-[rgb(167,_139,_250)] uppercase tracking-[2px] mt-0 mx-0 mb-[16px]">
+            <p className="text-[10px] text-[#C6A0FF] uppercase tracking-[2px] mt-0 mx-0 mb-[16px]">
               Powered by Kiro
             </p>
-            <p className="text-[13px] text-[rgb(148,_163,_184)] mt-0 mx-0 mb-[24px] leading-[1.55] px-[4px] py-0">
+            <p className="text-[13px] text-[rgb(193,_190,_198)] mt-0 mx-0 mb-[24px] leading-[1.55] px-[4px] py-0">
               Scan this code in the maze to open the correct question page.
             </p>
           </section>
@@ -99,7 +99,7 @@ export default function QRPage() {
             )}
           </div>
 
-          <p className="text-[10px] text-center text-[rgb(100,_116,_139)] mt-[12px]">
+          <p className="text-[10px] text-center text-[rgb(193,_190,_198)] mt-[12px]">
             Tip: Open this page on your phone, then capture the QR to place it at
             the physical station.
           </p>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 
 type NvidiaOption = {
@@ -152,14 +153,26 @@ export default function StationQuestionPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[rgb(13,_11,_26)] text-white flex items-center justify-center px-4 py-8">
+    <div className="min-h-screen bg-[#000000] text-white flex items-center justify-center px-4 py-8">
       <main className="w-full max-w-[320px]">
-        <div className="relative bg-[rgb(13,_11,_26)] pt-0 px-[20px] pb-[20px] flex flex-col items-center">
+        <div className="relative pt-0 px-[20px] pb-[20px] flex flex-col items-center">
           {/* Header */}
           <div className="w-full flex justify-between items-center mb-[20px]">
             <div className="flex items-center gap-[7px]">
-              <div className="w-[26px] h-[26px] rounded-[6px] bg-[linear-gradient(135deg,_rgb(124,_58,_237),_rgb(159,_103,_255))] flex items-center justify-center text-[13px] font-extrabold text-[rgb(255,_255,_255)] tracking-[-0.5px]">K</div>
-              <span className="font-sans font-extrabold text-[16px] text-[rgb(241,_245,_249)] tracking-[-0.3px]">kiro</span>
+              <Image
+                src="/logo.svg"
+                alt="Haunted House Scavenger Hunt logo"
+                width={20}
+                height={24}
+                priority
+              />
+              <Image
+                src="/Kiro_Logo_Wordmark_White.png"
+                alt="Kiro Logo"
+                width={57}
+                height={18}
+                priority
+              />
             </div>
             <div className="flex gap-[8px] items-center">
               {[...Array(3)].map((_, i) => {
@@ -170,13 +183,13 @@ export default function StationQuestionPage() {
                     key={num}
                     className={
                       isCurrentOrPast
-                        ? "w-[10px] h-[10px] rounded-[50%] bg-[rgb(167,_139,_250)] border-[1.5px] border-[solid] border-[rgb(167,_139,_250)] box-shadow-[rgba(124,_58,_237,_0.18)_0px_0px_8px] transition-[0.3s]"
-                        : "w-[10px] h-[10px] rounded-[50%] bg-[transparent] border-[1.5px] border-[solid] border-[rgb(100,_116,_139)] box-shadow-[none] transition-[0.3s]"
+                        ? "w-[10px] h-[10px] rounded-[50%] bg-[#C6A0FF] border-[1.5px] border-[solid] border-[#C6A0FF]"
+                        : "w-[10px] h-[10px] rounded-[50%] bg-[transparent] border-[1.5px] border-[solid] border-[#C6A0FF]"
                     }
                   />
                 );
               })}
-              <span className="font-mono text-[11px] text-[rgb(148,_163,_184)] ml-[4px]">
+              <span className="text-[11px] text-[rgb(193,_190,_198)] ml-[4px]">
                 {stepFraction}
               </span>
             </div>
@@ -185,23 +198,23 @@ export default function StationQuestionPage() {
           {status === "idle" && (
             <section className="w-full">
               {/* Question Title */}
-              <div className="w-full bg-[rgba(124,_58,_237,_0.18)] rounded-[12px] border-[1px] border-[solid] border-[rgba(124,_58,_237,_0.3)] px-[16px] py-[14px] mb-[20px] flex items-center gap-[12px]">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+              <div className="w-full bg-[#8E48FF] rounded-[12px] border-[1px] border-[solid] border-[#C6A0FF] px-[16px] py-[14px] mb-[20px] flex items-center gap-[12px]">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C6A0FF" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
                 <div>
-                  <p className="font-mono text-[10px] text-[rgb(167,_139,_250)] uppercase tracking-[1.5px] mb-[2px]">
+                  <p className="text-[10px] text-[#C6A0FF] uppercase tracking-[1.5px] mb-[2px]">
                     {stepLabel}
                   </p>
-                  <h1 className="font-sans text-[20px] font-extrabold text-[rgb(241,_245,_249)] tracking-[-0.4px] leading-[1.15]">What Did You Find?</h1>
+                  <h1 className="font-aws-diatype-rounded text-[20px] font-bold text-[#FFFFFF] tracking-[-0.4px] leading-[1.15]">What Did You Find?</h1>
                 </div>
               </div>
 
-              <p className="font-sans text-[13px] text-[rgb(148,_163,_184)] mt-0 mx-0 mb-[24px] leading-[1.6]">
+              <p className="text-[13px] text-[rgb(193,_190,_198)] mt-0 mx-0 mb-[24px] leading-[1.6]">
                 You've discovered a piece of NVIDIA hardware hidden in the maze. Can you identify it?
               </p>
 
               {/* Question card */}
               <form onSubmit={handleSubmit}>
-                <label className="text-[10px] text-[rgb(100,_116,_139)] uppercase tracking-[1.5px] block mb-[8px]">
+                <label className="text-[10px] text-[rgb(193,_190,_198)] uppercase tracking-[1.5px] block mb-[8px]">
                   Select the hardware
                 </label>
 
@@ -214,14 +227,14 @@ export default function StationQuestionPage() {
                     }}
                     className="
                       w-full
-                      bg-[rgb(30,_26,_56)]
+                      bg-[#000000]
                       rounded-[8px]
-                      border border-[rgb(42,37,71)]
+                      border border-[#C6A0FF]
                       px-[14px] py-[12px]
                       pr-8
-                      font-sans text-[13px] text-[rgb(100,_116,_139)]
-                      appearance-none
-                      focus-visible:border-[rgb(167,_139,_250)]
+                      text-[13px] text-[#FFFFFF]
+                      appearance-none                      
+                      focus-visible:border-[#C6A0FF]
                       focus-visible:outline-none
                     "
                   >
@@ -239,7 +252,7 @@ export default function StationQuestionPage() {
                     height="16"
                     viewBox="0 0 24 24"
                     fill="none"
-                    stroke="#A78BFA"
+                    stroke="#C6A0FF"
                     strokeWidth="2"
                     strokeLinecap="round"
                   >
@@ -252,8 +265,8 @@ export default function StationQuestionPage() {
                   disabled={isDisabled}
                   className={
                     isDisabled
-                      ? "w-full px-0 py-[14px] rounded-[10px] border-none bg-[rgb(30,_26,_56)] text-[rgb(100,_116,_139)] font-sans text-[14px] font-bold cursor-default opacity-50 [box-shadow:none]"
-                      : "w-full px-0 py-[14px] rounded-[10px] border-none bg-[linear-gradient(135deg,_rgb(124,_58,_237),_rgb(159,_103,_255))] text-[rgb(255,_255,_255)] font-sans text-[14px] font-bold cursor-pointer [box-shadow:rgba(124,_58,_237,_0.35)_0px_4px_20px]"
+                      ? "w-full px-0 py-[14px] rounded-[10px] border-none bg-[#646464] text-[#959595] font-aws-diatype-rounded text-[14px] font-bold cursor-default opacity-50 [box-shadow:none]"
+                      : "w-full px-0 py-[14px] rounded-[10px] border-none bg-[#8E48FF] text-[#FFFFFF] font-aws-diatype-rounded text-[14px] font-bold cursor-pointer"
                   }
                 >
                   Submit Answer
@@ -269,19 +282,19 @@ export default function StationQuestionPage() {
               {stationIndex === 1 && (
                 <div className="bg-[rgba(110,_231,_183,_0.12)] rounded-[16px] border-[1px] border-[solid] border-[rgba(110,231,183,0.25)] p-[28px] text-center mb-[20px]">
                   <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#6EE7B7" strokeWidth="2" strokeLinecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                  <h2 className="font-sans text-[20px] font-extrabold text-[rgb(110,_231,_183)] mt-[12px] mx-0 mb-[8px]">Nice detective work!</h2>
-                  <p className="text-[13px] text-[rgb(148,_163,_184)] m-0 leading-normal">
+                  <h2 className="font-aws-diatype-rounded text-[20px] font-bold text-[rgb(110,_231,_183)] mt-[12px] mx-0 mb-[8px]">Nice detective work!</h2>
+                  <p className="text-[13px] text-[rgb(193,_190,_198)] m-0 leading-normal">
                     You correctly identified the
                     <br/>
-                    <strong className="text-[rgb(241,_245,_249)]">Vera Rubin NVL72 Compute Tray</strong>
+                    <strong className="text-[#FFFFFF]">Vera Rubin NVL72 Compute Tray</strong>
                   </p>
                 </div>
               )}
               {stationIndex === 2 && (
-                <div className="bg-[rgba(124,_58,_237,_0.18)] rounded-[16px] border-[1px] border-[solid] border-[rgba(124,58,237,0.3)] p-[28px] text-center mb-[20px]">
-                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" strokeWidth="2" strokeLinecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                  <h2 className="font-sans text-[20px] font-extrabold text-[rgb(167,_139,_250)] mt-[12px] mx-0 mb-[8px]">Already cracked this one!</h2>
-                  <p className="text-[13px] text-[rgb(148,_163,_184)] m-0 leading-normal">
+                <div className="bg-[#8E48FF] rounded-[16px] border-[1px] border-[solid] border-[#C6A0FF] p-[28px] text-center mb-[20px]">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                  <h2 className="font-aws-diatype-rounded text-[20px] font-bold text-[#FFFFFF] mt-[12px] mx-0 mb-[8px]">Already cracked this one!</h2>
+                  <p className="text-[13px] text-[#FFFFFF] m-0 leading-normal">
                     You've already identified the hardware at Station 1. Keep moving through the maze.
                   </p>
                 </div>
@@ -289,8 +302,8 @@ export default function StationQuestionPage() {
 
               {/* Progress card */}
               {stationIndex === 1 && (
-                <div className="bg-[rgb(30,_26,_56)] rounded-[12px] border-[1px] border-[solid] border-[rgb(42,37,71)] p-[16px] mb-[20px]">
-                  <p className="text-[10px] text-[rgb(100,_116,_139)] uppercase tracking-[1.5px] mb-[12px]">
+                <div className="bg-[#000000] rounded-[12px] border-[1px] border-[solid] border-[#C6A0FF] p-[16px] mb-[20px]">
+                  <p className="text-[10px] text-[#FFFFFF] uppercase tracking-[1.5px] mb-[12px]">
                     Your progress
                   </p>
                   <div className="space-y-[6px] text-[12px]">
@@ -309,13 +322,13 @@ export default function StationQuestionPage() {
                           {isDone && (
                             <>
                               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6EE7B7" strokeWidth="2" strokeLinecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                              <span className="text-[12px] text-[rgb(241,_245,_249)]">{label}</span>
+                              <span className="text-[12px] text-[#FFFFFF]">{label}</span>
                             </>
                           )}
                           {!isDone && (
                             <>
-                              <div className="w-[16px] h-[16px] rounded-[50%] border-[1.5px] border-[solid] border-[rgb(100,_116,_139)]"></div>
-                              <span className="text-[12px] text-[rgb(100,_116,_139)]">{label}</span>
+                              <div className="w-[16px] h-[16px] rounded-[50%] border-[1.5px] border-[solid] border-[#646464]"></div>
+                              <span className="text-[12px] text-[#646464]">{label}</span>
                             </>
                           )}                        
                         </div>
@@ -326,13 +339,13 @@ export default function StationQuestionPage() {
               )}
 
               {stationIndex === 2 && (
-                <div className="font-mono text-[10px] text-[rgb(100,_116,_139)] uppercase tracking-[1.5px] mb-[12px] text-center">2 of 3 found</div>
+                <div className="text-[10px] text-[rgb(193,_190,_198)] uppercase tracking-[1.5px] mb-[12px] text-center">2 of 3 found</div>
               )}
 
               <button
                 type="button"
                 onClick={handleNextStation}
-                className="w-full px-0 py-[14px] rounded-[10px] border-[none] bg-[linear-gradient(135deg,_rgb(124,_58,_237),_rgb(159,_103,_255))] font-sans text-[rgb(255,_255,_255)] text-[14px] font-bold cursor-pointer [box-shadow:rgba(124,_58,_237,_0.3)_0px_4px_20px]"
+                className="w-full px-0 py-[14px] rounded-[10px] border-[none] bg-[#8E48FF] font-aws-diatype-rounded text-[#FFFFFF] text-[14px] font-bold cursor-pointer"
               >
                 {stationIndex === 1 && "Continue to Next Station →"}
                 {stationIndex === 2 && "Find the Last Station →"}
@@ -345,8 +358,8 @@ export default function StationQuestionPage() {
             <section className="w-full">
               <div className="bg-[rgba(248,_113,_113,_0.1)] rounded-[16px] border-[1px] border-[solid] border-[rgba(248,113,113,0.25)] p-[28px] text-center mb-[20px]">
               <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#F87171" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"></circle><path d="m15 9-6 6M9 9l6 6"></path></svg>
-                <h2 className="font-sans text-[20px] font-extrabold text-[rgb(248,_113,_113)] mt-[12px] mx-0 mb-[8px]">That's not it</h2>
-                <p className="text-[13px] text-[rgb(148,_163,_184)] m-0 leading-normal">
+                <h2 className="font-aws-diatype-rounded text-[20px] font-bold text-[rgb(248,_113,_113)] mt-[12px] mx-0 mb-[8px]">That's not it</h2>
+                <p className="text-[13px] text-[rgb(193,_190,_198)] m-0 leading-normal">
                   Take another look around the station
                   <br/>
                   and try again.
@@ -359,7 +372,7 @@ export default function StationQuestionPage() {
                   setSelected(NVIDIA_OPTIONS[0].value);
                   setStatus("idle");
                 }}
-                className="w-full px-0 py-[14px] rounded-[10px] bg-transparent border-[1px] border-[solid] border-[rgba(124,58,237,0.3)] font-sans text-[rgb(167,_139,_250)] text-[14px] font-bold cursor-pointer"
+                className="w-full px-0 py-[14px] rounded-[10px] bg-transparent border-[1px] border-[solid] border-[#FFFFFF] font-aws-diatype-rounded text-[#FFFFFF] text-[14px] font-bold cursor-pointer"
               >
                 Try Again
               </button>

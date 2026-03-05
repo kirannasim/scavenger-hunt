@@ -1,17 +1,79 @@
 import type { Metadata } from "next";
-import { DM_Sans, JetBrains_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
-const dmSans = DM_Sans({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+const AWSDiatypeFont = localFont({
+  src: [
+    {
+      path: "../../public/fonts/AWSDiatype-Regular.otf",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/AWSDiatype-Regular.woff2",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/AWSDiatype-RegularItalic.otf",
+      weight: "400",
+      style: "italic",
+    },
+    {
+      path: "../../public/fonts/AWSDiatype-RegularItalic.woff2",
+      weight: "400",
+      style: "italic",
+    },
+    {
+      path: "../../public/fonts/AWSDiatype-Bold.otf",
+      weight: "700",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/AWSDiatype-Bold.woff2",
+      weight: "700",
+      style: "normal",
+    },
+  ],
+  variable: "--font-aws-diatype",
+  display: "swap",
 });
 
-const jetBrainsMono = JetBrains_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-  weight: ["400", "500", "700"],
+const AWSDiatypeRoundedFont = localFont({
+  src: [
+    {
+      path: "../../public/fonts/AWSDiatypeRounded-Regular.otf",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/AWSDiatypeRounded-Regular.woff2",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/AWSDiatypeRounded-RegularItalic.otf",
+      weight: "400",
+      style: "italic",
+    },
+    {
+      path: "../../public/fonts/AWSDiatypeRounded-RegularItalic.woff2",
+      weight: "400",
+      style: "italic",
+    },
+    {
+      path: "../../public/fonts/AWSDiatypeRounded-Bold.otf",
+      weight: "700",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/AWSDiatypeRounded-Bold.woff2",
+      weight: "700",
+      style: "normal",
+    },
+  ],
+  variable: "--font-aws-diatype-rounded",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -26,7 +88,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${dmSans.variable} ${jetBrainsMono.variable} antialiased`}>
+      <body className={`${AWSDiatypeFont.variable} ${AWSDiatypeRoundedFont.variable} antialiased`}>
         {children}
       </body>
     </html>
