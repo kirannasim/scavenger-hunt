@@ -2,17 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { useParams, useSearchParams, useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 type NvidiaOption = {
   value: string;
   label: string;
-};
-
-type GeoCodes = {
-  countryCode: string;
-  stateCode: string;
-  ip: string;
 };
 
 const NVIDIA_OPTIONS: NvidiaOption[] = [
@@ -34,28 +28,27 @@ const CORRECT_ANSWERS = [
   "Jetson Thor", // Station 3
 ];
 
-function decodeGeoCodes(encoded: string): GeoCodes | null {
-  try {
-    const base64 = encoded.replace(/-/g, "+").replace(/_/g, "/");
-    const paddingNeeded = (4 - (base64.length % 4)) % 4;
-    const padded = base64 + "=".repeat(paddingNeeded);
-    const decoded = atob(padded);
-    const [countryCode, stateCode, ip] = decoded.split(":");
-    if (!countryCode || !stateCode || !ip) return null;
-    return { countryCode, stateCode, ip };
-  } catch {
-    return null;
-  }
+function clampStationId(id: number): number {
+  if (Number.isNaN(id) || id < 1) return 1;
+  if (id > 3) return 3;
+  return id;
 }
 
 export default function StationQuestionPage() {
-  // Route is /[encoded]/station where "encoded" contains country:state:ip
-  const { encoded } = useParams<{ encoded: string }>();
-
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const params = useParams<{ stationId: string }>();
+  const stationIdParam = params?.stationId ?? "1";
 
   const [stationIndex, setStationIndex] = useState(1);
+
+  useEffect(() => {
+    const n = Number.parseInt(stationIdParam, 10);
+    const clamped = clampStationId(n);
+    setStationIndex(clamped);
+    if (clamped !== n) {
+      router.replace(`/station/${clamped}`);
+    }
+  }, [stationIdParam, router]);
 
   const stepFraction = `${stationIndex}/3`;
   const stepLabel = `Station ${stationIndex} of 3`;
@@ -66,66 +59,6 @@ export default function StationQuestionPage() {
   const [status, setStatus] = useState<"idle" | "correct" | "incorrect">(
     "idle",
   );
-  const [isVerified, setIsVerified] = useState(false);
-
-  useEffect(() => {
-    const stationParam = searchParams.get("station") ?? "1";
-    const n = Number.parseInt(stationParam, 10);
-    if (Number.isNaN(n)) {
-      setStationIndex(1);
-      return;
-    }
-
-    const clamped = Math.min(Math.max(n, 1), 3);
-    setStationIndex(clamped);
-  }, [searchParams]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function verifyAccess() {
-      try {
-        const decoded = decodeGeoCodes(encoded);
-        if (!decoded) {
-          router.replace("/");
-          return;
-        }
-
-        const res = await fetch("https://ipapi.co/json/");
-        if (!res.ok) {
-          router.replace("/");
-          return;
-        }
-
-        const data = await res.json();
-        const currentCountry = data.country_code || "";
-        const currentRegion = data.region_code || "";
-        const currentIp = data.ip || "";
-
-        const matches =
-          decoded.countryCode === currentCountry &&
-          decoded.stateCode === currentRegion &&
-          decoded.ip === currentIp;
-
-        if (!matches) {
-          router.replace("/");
-          return;
-        }
-
-        if (!cancelled) {
-          setIsVerified(true);
-        }
-      } catch {
-        router.replace("/");
-      }
-    }
-
-    verifyAccess();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [encoded, router]);
 
   const isDisabled = selected === NVIDIA_OPTIONS[0].value;
 
@@ -136,21 +69,17 @@ export default function StationQuestionPage() {
     setStatus(isCorrect ? "correct" : "incorrect");
 
     if (isCorrect && stationIndex === 3) {
-      router.push(`/${encoded}/results`);
+      router.push(`/results`);
     }
   };
 
-  const handleNextStation = () => {    
+  const handleNextStation = () => {
     if (stationIndex < 3) {
       const next = stationIndex + 1;
       setStatus("idle");
-      router.push(`/${encoded}/station?station=${next}`);
+      router.push(`/station/${next}`);
     }
   };
-
-  if (!isVerified) {
-    return null;
-  }
 
   return (
     <div className="min-h-screen bg-[#000000] text-white flex items-center justify-center px-4 py-8">
@@ -177,7 +106,7 @@ export default function StationQuestionPage() {
             <div className="flex gap-[8px] items-center">
               {[...Array(3)].map((_, i) => {
                 const num = i + 1;
-                const isCurrentOrPast = num <= stationIndex; // fill for current + previous
+                const isCurrentOrPast = num <= stationIndex;
                 return (
                   <div
                     key={num}
@@ -245,7 +174,6 @@ export default function StationQuestionPage() {
                     ))}
                   </select>
 
-                  {/* custom caret positioned where you want */}
                   <svg
                     className="absolute right-[14px] top-1/2 -translate-y-1/2"
                     width="16"
@@ -278,7 +206,6 @@ export default function StationQuestionPage() {
           {/* Correct state */}
           {status === "correct" && stationIndex < 3 && (
             <section className="w-full">
-              {/* Success card */}
               {stationIndex === 1 && (
                 <div className="bg-[rgba(110,_231,_183,_0.12)] rounded-[16px] border-[1px] border-[solid] border-[rgba(110,231,183,0.25)] p-[28px] text-center mb-[20px]">
                   <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#6EE7B7" strokeWidth="2" strokeLinecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
@@ -300,7 +227,6 @@ export default function StationQuestionPage() {
                 </div>
               )}
 
-              {/* Progress card */}
               {stationIndex === 1 && (
                 <div className="bg-[#000000] rounded-[12px] border-[1px] border-[solid] border-[#C6A0FF] p-[16px] mb-[20px]">
                   <p className="text-[10px] text-[#FFFFFF] uppercase tracking-[1.5px] mb-[12px]">
@@ -309,7 +235,7 @@ export default function StationQuestionPage() {
                   <div className="space-y-[6px] text-[12px]">
                     {[1, 2, 3].map((num) => {
                       const isCurrent = num === stationIndex;
-                      const isDone = isCurrent; // for now, mark only this station as done
+                      const isDone = isCurrent;
                       const label =
                         num === stationIndex
                           ? `Station ${num} — ${correctAnswer}`
@@ -330,7 +256,7 @@ export default function StationQuestionPage() {
                               <div className="w-[16px] h-[16px] rounded-[50%] border-[1.5px] border-[solid] border-[#646464]"></div>
                               <span className="text-[12px] text-[#646464]">{label}</span>
                             </>
-                          )}                        
+                          )}
                         </div>
                       );
                     })}
@@ -357,7 +283,7 @@ export default function StationQuestionPage() {
           {status === "incorrect" && (
             <section className="w-full">
               <div className="bg-[rgba(248,_113,_113,_0.1)] rounded-[16px] border-[1px] border-[solid] border-[rgba(248,113,113,0.25)] p-[28px] text-center mb-[20px]">
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#F87171" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"></circle><path d="m15 9-6 6M9 9l6 6"></path></svg>
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#F87171" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"></circle><path d="m15 9-6 6M9 9l6 6"></path></svg>
                 <h2 className="font-aws-diatype-rounded text-[20px] font-bold text-[rgb(248,_113,_113)] mt-[12px] mx-0 mb-[8px]">That's not it</h2>
                 <p className="text-[13px] text-[rgb(193,_190,_198)] m-0 leading-normal">
                   Take another look around the station

@@ -1,59 +1,72 @@
 "use client";
 
-import Link from "next/link";
+import Image from "next/image";
+
+const CORRECT_ANSWERS = [
+  "Vera Rubin NVL72 Compute Tray", // Station 1
+  "RTX PRO 4500 BSE AC PCIe", // Station 2
+  "Jetson Thor", // Station 3
+];
 
 export default function ResultsPage() {
-  // TODO: Read real progress from localStorage to determine completion.
-  const allStationsCompleted = false;
-
   return (
     <div className="min-h-screen bg-[rgb(13,_11,_26)] text-white flex items-center justify-center px-4 py-8">
       <main className="w-full max-w-[320px]">
         <div className="relative bg-[rgb(13,_11,_26)] pt-0 px-[20px] pb-[20px] flex flex-col items-center">
-          {/* Badge / header */}
-          <div className="relative w-[120px] h-[120px] rounded-[28px] mt-[8px] mx-[auto] mb-[20px] bg-[rgb(22,_163,_74)] flex items-center justify-center [box-shadow:rgba(34,_197,_94,_0.45)_0px_8px_40px,_rgba(34,_197,_94,_0.15)_0px_0px_80px]">
-            <span className="text-[40px]">🎉</span>
+          {/* Header */}
+          <div className="w-full flex justify-center items-center mb-[20px]">
+            <div className="flex items-center gap-[7px]">
+              <Image
+                src="/logo.svg"
+                alt="Haunted House Scavenger Hunt logo"
+                width={20}
+                height={24}
+                priority
+              />
+              <Image
+                src="/Kiro_Logo_Wordmark_White.png"
+                alt="Kiro Logo"
+                width={57}
+                height={18}
+                priority
+              />
+            </div>
           </div>
 
-          <section className="text-center space-y-2 mb-[20px]">
-            <h1 className="font-aws-diatype-rounded text-[24px] font-bold text-[rgb(241,_245,_249)] mt-0 mx-0 tracking-[-0.5px] leading-[1.15]">
-              You found them all!
-            </h1>
-            <p className="text-[11px] text-[rgb(148,_163,_184)] mt-[6px]">
-              Show this screen to Kiro staff to claim your haunted house swag.
-            </p>
-          </section>
-
-          <section className="w-full">
-            <div className="bg-[rgb(30,_64,_175)]/40 rounded-[14px] border-[1px] border-[solid] border-[rgba(129,_140,_248,_0.6)] px-[16px] pt-[16px] pb-[12px] mb-[18px] text-[12px]">
-              <p className="text-[rgb(199,_210,_254)] font-semibold mb-[6px]">
-                Completion status
-              </p>
-              <p className="text-[rgb(191,_219,_254)]">
-                {allStationsCompleted
-                  ? "All 3 NVIDIA hardware stations are verified as correct on this device."
-                  : "This is a preview. Hook this page up to your station progress to confirm completion."}
-              </p>
+          {/* Result section */}
+          <section className="w-full bg-[transparent] rounded-[16px] border-[1px] border-[solid] border-[#C6A0FF] px-[20px] py-[28px] mb-[20px]">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#8E48FF" strokeWidth="1.5" strokeLinecap="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
+            <h1 className="font-aws-diatype-rounded text-[22px] font-bold text-[#8E48FF] mt-[14px] mx-0 mb-[8px]">You Found Them All!</h1>
+            <p className="text-[13px] text-[rgb(193,_190,_198)] mt-0 mx-0 mb-[18px] leading-[1.6]">Congratulations, detective. You've identified all the NVIDIA hardware in the maze.</p>
+            <div className="bg-[rgba(71,_29,_134,_.1)] rounded-[10px] border-[1px] border-[solid] border-[#C6A0FF] p-[14px] text-left">              
+            {CORRECT_ANSWERS.map((answer) => {
+              return (
+                <div
+                  key={answer}
+                  className="flex items-center gap-[8px] mb-[8px]"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6EE7B7" strokeWidth="2" strokeLinecap="round">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                  </svg>
+                  <span className="text-[11px] text-[#FFFFFF]">{answer}</span>
+                </div>
+              );
+            })}
             </div>
           </section>
 
-          <section className="w-full flex flex-col gap-[10px]">
-            <Link
-              href="/"
-              className="block w-full text-center px-0 py-[12px] rounded-[10px] border-[none] bg-[linear-gradient(135deg,_rgb(124,_58,_237),_rgb(159,_103,_255))] text-[rgb(255,_255,_255)] text-[14px] font-bold cursor-pointer [box-shadow:rgba(124,_58,_237,_0.35)_0px_4px_20px]"
-            >
-              Back to Start
-            </Link>
+          {/* Claim Swag section */}
+          <section className="w-full bg-[#8E48FF] rounded-[12px] border-[1px] border-[solid] border-[#C6A0FF] p-[18px] mb-[16px] text-center">
+            <h2 className="font-aws-diatype-rounded text-[15px] font-bold text-[#FFFFFF] mb-[6px]">Claim Your Swag</h2>
+            <p className="text-[12px] text-[#C6A0FF] m-0 leading-[1.5]">Show this screen to any Kiro team member to collect your prize.</p>
           </section>
 
-          <p className="text-[10px] text-center text-[rgb(100,_116,_139)] mt-[12px]">
-            Staff: visually check this animated screen and the device before
-            handing out swag.
-          </p>
+          {/* Result code section */}
+          <div className="w-full font-aws-diatype-rounded text-[20px] font-bold text-[#FFFFFF] letter-spacing-[5px] bg-[rgba(71,_29,_134,_.1)] rounded-[8px] border-[1px] border-[dashed] border-[#C6A0FF] p-[14px] text-center">KIRO-7X3M</div>
+          <p className="text-[9px] text-[rgb(193,_190,_198)] mt-[8px]">Unique completion code · Valid today only</p>
         </div>
       </main>
     </div>
   );
 }
-
-
