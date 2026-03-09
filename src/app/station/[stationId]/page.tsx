@@ -28,12 +28,6 @@ const CORRECT_ANSWERS = [
   "Jetson Thor", // Station 3
 ];
 
-function clampStationId(id: number): number {
-  if (Number.isNaN(id) || id < 1) return 1;
-  if (id > 3) return 3;
-  return id;
-}
-
 const STATUS_COOKIE_NAME = "station_status";
 const VISITED_COOKIE_NAME = "station_visited";
 const VALID_STATUSES = ["idle", "correct", "incorrect"] as const;
@@ -91,17 +85,16 @@ export default function StationQuestionPage() {
   // Dot indicators: which of the 3 stations are completed (correct). Set from cookies in effect so first load is correct.
   const [completedStations, setCompletedStations] = useState<[boolean, boolean, boolean]>([false, false, false]);
 
-  // Single effect: parse param, redirect if invalid, then set stationIndex + status + completedStations from cookies
+  // Single effect: parse param, redirect to 404 if invalid, then set stationIndex + status + completedStations from cookies
   useEffect(() => {
     const n = Number.parseInt(stationIdParam, 10);
-    const clamped = clampStationId(n);
-    if (clamped !== n) {
-      router.replace(`/station/${clamped}`);
+    if (Number.isNaN(n) || n < 1 || n > 3) {
+      router.replace("/404");
       return;
     }
-    setStationIndex((prev) => (prev !== clamped ? clamped : prev));
-    const savedStatus = getStatusCookie(clamped);
-    const visited = getVisitedCookie(clamped);
+    setStationIndex((prev) => (prev !== n ? n : prev));
+    const savedStatus = getStatusCookie(n);
+    const visited = getVisitedCookie(n);
     const displayStatus = savedStatus
       ? visited === "yes" && savedStatus === "correct"
         ? "already_cracked"
@@ -118,7 +111,7 @@ export default function StationQuestionPage() {
   const stepFraction = `${stationIndex}/3`;
   const stepLabel = `Station ${stationIndex} of 3`;
   const correctAnswer =
-    CORRECT_ANSWERS[stationIndex - 1] ?? CORRECT_ANSWERS[0];
+    CORRECT_ANSWERS[stationIndex - 1] ?? "";
 
   const [selected, setSelected] = useState<string>(NVIDIA_OPTIONS[0].value);  
 
@@ -150,17 +143,16 @@ export default function StationQuestionPage() {
     }
   };
 
-  const handleNextStation = () => {
-    // Find the first station (1–3) that is not yet correct (idle or incorrect)
-    const nextStation = [1, 2, 3].find((num) => !completedStations[num - 1]);
-    if (nextStation == null) {
-      // All stations correct → go to results
-      router.push("/results");
-    } else {
-      router.push(`/station/${nextStation}`);
-    }
-  };
-  
+  // const handleNextStation = () => {
+  //   // Find the first station (1–3) that is not yet correct (idle or incorrect)
+  //   const nextStation = [1, 2, 3].find((num) => !completedStations[num - 1]);
+  //   if (nextStation == null) {
+  //     // All stations correct → go to results
+  //     router.push("/results");
+  //   } else {
+  //     router.push(`/station/${nextStation}`);
+  //   }
+  // };  
 
   return (
     <div className="min-h-screen bg-[#000000] text-white flex items-center justify-center px-4 py-8">
@@ -300,8 +292,8 @@ export default function StationQuestionPage() {
                 <h2 className="font-aws-diatype-rounded text-[20px] font-bold text-[rgb(110,_231,_183)] mt-[12px] mx-0 mb-[8px]">Nice detective work!</h2>
                 <p className="text-[13px] text-[rgb(193,_190,_198)] m-0 leading-normal">
                   You correctly identified the
-                  <br/>
-                  <strong className="text-[#FFFFFF]">Vera Rubin NVL72 Compute Tray</strong>
+                    <br/>
+                    <strong className="text-[#FFFFFF]">{correctAnswer}</strong>
                 </p>
               </div>
 
@@ -312,9 +304,10 @@ export default function StationQuestionPage() {
                 <div className="space-y-[6px] text-[12px]">
                   {[1, 2, 3].map((num) => {
                     const isDone = getStatusCookie(num) === "correct";
+                    const productName = CORRECT_ANSWERS[num - 1];
                     const label =
                       isDone
-                        ? `Station ${num} — ${correctAnswer}`
+                        ? `Station ${num} — ${productName}`
                         : `Station ${num} — Not found yet`;
                     return (
                       <div
@@ -339,13 +332,15 @@ export default function StationQuestionPage() {
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={handleNextStation}
-                className="w-full px-0 py-[14px] rounded-[10px] border-[none] bg-[#8E48FF] font-aws-diatype-rounded text-[#FFFFFF] text-[14px] font-bold cursor-pointer"
-              >
-                {countFoundStations() === 3 ? "View Results" : countFoundStations() === 2 ? "Find the Last Station →" : "Continue to Next Station →"}
-              </button>
+              {countFoundStations() === 3 && (
+                <button
+                  type="button"
+                  onClick={() => router.push("/results")}
+                  className="w-full px-0 py-[14px] rounded-[10px] border-[none] bg-[#8E48FF] font-aws-diatype-rounded text-[#FFFFFF] text-[14px] font-bold cursor-pointer"
+                >
+                  View Results
+                </button>
+              )}
             </section>
           )}
 
@@ -390,13 +385,15 @@ export default function StationQuestionPage() {
 
               <div className="text-[10px] text-[rgb(193,_190,_198)] uppercase tracking-[1.5px] mb-[12px] text-center">{countFoundStations()} of 3 found</div>
 
-              <button
-                type="button"
-                onClick={handleNextStation}
-                className="w-full px-0 py-[14px] rounded-[10px] border-[none] bg-[#8E48FF] font-aws-diatype-rounded text-[#FFFFFF] text-[14px] font-bold cursor-pointer"
-              >                
-                {countFoundStations() === 3 ? "View Results" : countFoundStations() === 2 ? "Find the Last Station →" : "Continue to Next Station →"}
-              </button>
+              {countFoundStations() === 3 && (
+                <button
+                  type="button"
+                  onClick={() => router.push("/results")}
+                  className="w-full px-0 py-[14px] rounded-[10px] border-[none] bg-[#8E48FF] font-aws-diatype-rounded text-[#FFFFFF] text-[14px] font-bold cursor-pointer"
+                >                
+                  View Results
+                </button>
+              )}
             </section>
           )}
         </div>

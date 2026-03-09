@@ -58,14 +58,14 @@ export default function Home() {
           </section>
 
           {/* CTA button */}
-          <section className="w-full">
+          {/* <section className="w-full">
             <Link
-              href="/station/1"
+              href="#"
               className="block w-full font-aws-diatype-rounded text-center px-0 py-[14px] rounded-[10px] border-[none] bg-[#8E48FF] text-[#FFFFFF] text-[14px] font-bold cursor-pointer [box-shadow:rgba(124,_58,_237,_0.35)_0px_4px_20px] disabled:opacity-60 disabled:cursor-not-allowed"
             >
               Scan QR Code to Start
             </Link>
-          </section>
+          </section> */}
 
           {/* Footer */}
           <footer className="text-[10px] text-[rgb(193,_190,_198)] mt-[12px]">
