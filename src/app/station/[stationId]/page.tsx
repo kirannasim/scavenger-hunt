@@ -181,12 +181,11 @@ export default function StationQuestionPage() {
                 const isCorrect = completedStations[num - 1];
                 return (
                   <div
-                    key={num}
-                    onClick={() => router.push(`/station/${num}`)}
+                    key={num}                    
                     className={
                       isCorrect
-                        ? "w-[10px] h-[10px] rounded-[50%] bg-[#C6A0FF] border-[1.5px] border-[solid] border-[#C6A0FF] cursor-pointer"
-                        : "w-[10px] h-[10px] rounded-[50%] bg-[transparent] border-[1.5px] border-[solid] border-[#C6A0FF] cursor-pointer"
+                        ? "w-[10px] h-[10px] rounded-[50%] bg-[#C6A0FF] border-[1.5px] border-[solid] border-[#C6A0FF]"
+                        : "w-[10px] h-[10px] rounded-[50%] bg-[transparent] border-[1.5px] border-[solid] border-[#C6A0FF]"
                     }
                   />
                 );
