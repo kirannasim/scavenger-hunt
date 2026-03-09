@@ -30,9 +30,7 @@ export default function Home() {
               Powered by Kiro
             </p>
             <p className="text-[13px] text-[rgb(193,_190,_198)] mt-0 mx-0 mb-[24px] leading-[1.55] px-[4px] py-0">
-              Navigate the maze. Spot the latest NVIDIA
-              <br />
-              hardware. Identify them all to win Kiro swag.
+              Navigate the maze. Spot the NVIDIA hardware available now or soon to be available on AWS.  Identify them all to win Kiro swag.
             </p>
           </section>
 
