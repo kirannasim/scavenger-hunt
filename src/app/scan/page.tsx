@@ -77,7 +77,7 @@ function ScanInner() {
           )}
 
           {permission === "requesting" && (
-            <p className="text-[#C6A0FF] text-[13px] mb-4">Opening camera & loading QR code …</p>
+            <p className="text-[#C6A0FF] text-[13px] mb-4">Opening camera …</p>
           )}
 
           {permission === "granted" && (
