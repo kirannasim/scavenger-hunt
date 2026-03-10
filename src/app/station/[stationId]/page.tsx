@@ -86,7 +86,7 @@ export default function StationQuestionPage() {
   const searchParams = useSearchParams();
 
   const [stationIndex, setStationIndex] = useState(1);
-  const [status, setStatus] = useState<"loading" | "idle" | "correct" | "incorrect" | "already_cracked" | "qr_code">(
+  const [status, setStatus] = useState<"loading" | "idle" | "correct" | "incorrect" | "already_cracked">(
     "loading",
   );
   // Dot indicators: which of the 3 stations are completed (correct). Set from cookies in effect so first load is correct.
@@ -114,14 +114,6 @@ export default function StationQuestionPage() {
       getStatusCookie(3) === "correct",
     ]);
   }, [stationIdParam]); // eslint-disable-line react-hooks/exhaustive-deps -- router is stable; only react to param change
-
-  // If URL has ?status=qr_code, override status to "qr_code"
-  useEffect(() => {
-    const statusParam = searchParams.get("status");
-    if (statusParam === "qr_code") {
-      setStatus("qr_code");
-    }
-  }, [searchParams]);
 
   const stepFraction = `${stationIndex}/3`;
   const stepLabel = `Station ${stationIndex} of 3`;
@@ -165,8 +157,10 @@ export default function StationQuestionPage() {
       router.push("/results");
       return;
     } else {
-      router.push(`/station/${nextStation}?status=qr_code`);
-    }
+      // router.push(`/station/${nextStation}?status=qr_code`);
+      // Open lens screen to start scanning QR code
+      router.push(`/scan?stationId=${nextStation}`);
+    }    
   };
 
   // const handleNextStation = () => {
@@ -435,24 +429,6 @@ export default function StationQuestionPage() {
                   Scan QR Code
                 </button>
               )}
-            </section>
-          )}
-
-          {/* QR code state */}
-          {status === "qr_code" && (
-            <section className="w-full">
-              <div className="p-[16px] mb-[20px] text-center">
-                <p className="text-[10px] text-[#FFFFFF] uppercase tracking-[1.5px] mb-[12px]">
-                  Scan the QR code to reveal the next station
-                </p>
-                <Image
-                  src={STATION_QR_CODES[stationIndex - 1]}
-                  alt="QR Code"
-                  width={300}
-                  height={300}
-                  className="w-full h-auto"
-                />
-              </div>
             </section>
           )}
         </div>

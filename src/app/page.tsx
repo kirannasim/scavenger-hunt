@@ -49,7 +49,7 @@ export default function Home() {
       router.push("/results");
       return;
     } else {
-      router.push(`/station/${nextStation}?status=qr_code`);
+      router.push(`/scan?stationId=${nextStation}`);
     }
   };
 
