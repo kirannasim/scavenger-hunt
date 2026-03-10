@@ -1,9 +1,58 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 
+const STATUS_COOKIE_NAME = "station_status";
+const VALID_STATUSES = ["idle", "correct", "incorrect"] as const;
+type StatusValue = (typeof VALID_STATUSES)[number];
+
+function getCookieValue(prefix: string, stationId: number, valid: readonly string[]): string | null {
+  if (typeof document === "undefined") return null;
+  const name = `${prefix}_${stationId}=`;
+  const decoded = decodeURIComponent(document.cookie);
+  const parts = decoded.split(";");
+  for (const part of parts) {
+    const trimmed = part.trim();
+    if (trimmed.startsWith(name)) {
+      const value = trimmed.slice(name.length);
+      if (valid.includes(value)) return value;
+      return null;
+    }
+  }
+  return null;
+}
+
+function getStatusCookie(stationId: number): StatusValue | null {
+  const value = getCookieValue(STATUS_COOKIE_NAME, stationId, VALID_STATUSES);
+  return value as StatusValue | null;
+}
+
 export default function Home() {
+  const router = useRouter();
+  const [completedStations, setCompletedStations] = useState<[boolean, boolean, boolean]>([false, false, false]);
+  
+  useEffect(() => {
+    setCompletedStations([
+      getStatusCookie(1) === "correct",
+      getStatusCookie(2) === "correct",
+      getStatusCookie(3) === "correct",
+    ]);
+  }, []);
+
+  const handleScanQRCode = () => {
+    // Find the first station (1–3) that is not yet correct (idle or incorrect)
+    const nextStation = [1, 2, 3].find((num) => !completedStations[num - 1]);
+    if (nextStation == null) {
+      router.push("/results");
+      return;
+    } else {
+      router.push(`/station/${nextStation}?status=qr_code`);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#000000] text-white flex items-center justify-center px-4 py-8">
       <main className="w-full max-w-[320px]">        
@@ -58,14 +107,15 @@ export default function Home() {
           </section>
 
           {/* CTA button */}
-          {/* <section className="w-full">
-            <Link
-              href="#"
-              className="block w-full font-aws-diatype-rounded text-center px-0 py-[14px] rounded-[10px] border-[none] bg-[#8E48FF] text-[#FFFFFF] text-[14px] font-bold cursor-pointer [box-shadow:rgba(124,_58,_237,_0.35)_0px_4px_20px] disabled:opacity-60 disabled:cursor-not-allowed"
+          <section className="w-full">
+            <button
+              type="button"
+              onClick={handleScanQRCode}
+              className="w-full px-0 py-[14px] rounded-[10px] border-[none] bg-[#8E48FF] font-aws-diatype-rounded text-[#FFFFFF] text-[14px] font-bold cursor-pointer"
             >
-              Scan QR Code to Start
-            </Link>
-          </section> */}
+                Scan QR Code to Start
+            </button>
+          </section>
 
           {/* Footer */}
           <footer className="text-[10px] text-[rgb(193,_190,_198)] mt-[12px]">

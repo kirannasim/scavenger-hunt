@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 
 type NvidiaOption = {
   value: string;
@@ -20,6 +20,12 @@ const NVIDIA_OPTIONS: NvidiaOption[] = [
   { value: "HGX H200 8way", label: "HGX H200 8way" },
   { value: "HGX B300 8way AC", label: "HGX B300 8way AC" },
   { value: "Jetson Thor", label: "Jetson Thor" },
+];
+
+const STATION_QR_CODES = [
+  "/Station_1_QR_Code.png",
+  "/Station_2_QR_Code.png",
+  "/Station_3_QR_Code.png",
 ];
 
 const CORRECT_ANSWERS = [
@@ -77,9 +83,10 @@ export default function StationQuestionPage() {
   const router = useRouter();
   const params = useParams<{ stationId: string }>();
   const stationIdParam = params?.stationId ?? "1";
+  const searchParams = useSearchParams();
 
   const [stationIndex, setStationIndex] = useState(1);
-  const [status, setStatus] = useState<"loading" | "idle" | "correct" | "incorrect" | "already_cracked">(
+  const [status, setStatus] = useState<"loading" | "idle" | "correct" | "incorrect" | "already_cracked" | "qr_code">(
     "loading",
   );
   // Dot indicators: which of the 3 stations are completed (correct). Set from cookies in effect so first load is correct.
@@ -107,6 +114,14 @@ export default function StationQuestionPage() {
       getStatusCookie(3) === "correct",
     ]);
   }, [stationIdParam]); // eslint-disable-line react-hooks/exhaustive-deps -- router is stable; only react to param change
+
+  // If URL has ?status=qr_code, override status to "qr_code"
+  useEffect(() => {
+    const statusParam = searchParams.get("status");
+    if (statusParam === "qr_code") {
+      setStatus("qr_code");
+    }
+  }, [searchParams]);
 
   const stepFraction = `${stationIndex}/3`;
   const stepLabel = `Station ${stationIndex} of 3`;
@@ -140,6 +155,17 @@ export default function StationQuestionPage() {
         next[stationIndex - 1] = true;
         return next;
       });
+    }
+  };
+
+  const handleScanQRCode = () => {
+    // Find the first station (1–3) that is not yet correct (idle or incorrect)
+    const nextStation = [1, 2, 3].find((num) => !completedStations[num - 1]);
+    if (nextStation == null) {
+      router.push("/results");
+      return;
+    } else {
+      router.push(`/station/${nextStation}?status=qr_code`);
     }
   };
 
@@ -331,13 +357,21 @@ export default function StationQuestionPage() {
                 </div>
               </div>
 
-              {countFoundStations() === 3 && (
+              {countFoundStations() === 3 ? (
                 <button
                   type="button"
                   onClick={() => router.push("/results")}
                   className="w-full px-0 py-[14px] rounded-[10px] border-[none] bg-[#8E48FF] font-aws-diatype-rounded text-[#FFFFFF] text-[14px] font-bold cursor-pointer"
                 >
                   View Results
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleScanQRCode}
+                  className="w-full px-0 py-[14px] rounded-[10px] border-[none] bg-[#8E48FF] font-aws-diatype-rounded text-[#FFFFFF] text-[14px] font-bold cursor-pointer"
+                >
+                  Scan QR Code
                 </button>
               )}
             </section>
@@ -384,7 +418,7 @@ export default function StationQuestionPage() {
 
               <div className="text-[10px] text-[rgb(193,_190,_198)] uppercase tracking-[1.5px] mb-[12px] text-center">{countFoundStations()} of 3 found</div>
 
-              {countFoundStations() === 3 && (
+              {countFoundStations() === 3 ? (
                 <button
                   type="button"
                   onClick={() => router.push("/results")}
@@ -392,7 +426,33 @@ export default function StationQuestionPage() {
                 >                
                   View Results
                 </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleScanQRCode}
+                  className="w-full px-0 py-[14px] rounded-[10px] border-[none] bg-[#8E48FF] font-aws-diatype-rounded text-[#FFFFFF] text-[14px] font-bold cursor-pointer"
+                >
+                  Scan QR Code
+                </button>
               )}
+            </section>
+          )}
+
+          {/* QR code state */}
+          {status === "qr_code" && (
+            <section className="w-full">
+              <div className="p-[16px] mb-[20px] text-center">
+                <p className="text-[10px] text-[#FFFFFF] uppercase tracking-[1.5px] mb-[12px]">
+                  Scan the QR code to reveal the next station
+                </p>
+                <Image
+                  src={STATION_QR_CODES[stationIndex - 1]}
+                  alt="QR Code"
+                  width={300}
+                  height={300}
+                  className="w-full h-auto"
+                />
+              </div>
             </section>
           )}
         </div>

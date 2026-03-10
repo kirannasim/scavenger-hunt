@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
 
 const CORRECT_ANSWERS = [
@@ -33,17 +34,31 @@ function getStatusCookie(stationId: number): StatusValue | null {
   return value as StatusValue | null;
 }
 
-const countFoundStations = () => {
-  let count = 0;
-  [...Array(3)].map((_, i) => {
-    if (getStatusCookie(i + 1) === "correct") {
-      count++;
-    }
-  });
-  return count;
-};
-
 export default function ResultsPage() {
+  const [foundCount, setFoundCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    let count = 0;
+    for (let i = 1; i <= 3; i++) {
+      if (getStatusCookie(i) === "correct") {
+        count++;
+      }
+    }
+    setFoundCount(count);
+  }, []);
+
+  if (foundCount === null) {
+    return (
+      <div className="min-h-screen bg-[rgb(13,_11,_26)] text-white flex items-center justify-center px-4 py-8">
+        <main className="w-full max-w-[320px]">
+          <div className="relative bg-[rgb(13,_11,_26)] pt-0 px-[20px] pb-[20px] flex flex-col items-center">
+            <p className="text-[13px] text-[rgb(193,_190,_198)]">Loading...</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[rgb(13,_11,_26)] text-white flex items-center justify-center px-4 py-8">
       <main className="w-full max-w-[320px]">
@@ -68,7 +83,7 @@ export default function ResultsPage() {
             </div>
           </div>
 
-          {countFoundStations() === 3 ? (
+          {foundCount === 3 ? (
             <>
               {/* Result section */}
               <section className="w-full bg-[transparent] rounded-[16px] border-[1px] border-[solid] border-[#C6A0FF] px-[20px] py-[28px] mb-[20px]">
