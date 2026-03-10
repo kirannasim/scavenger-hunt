@@ -22,12 +22,6 @@ const NVIDIA_OPTIONS: NvidiaOption[] = [
   { value: "Jetson Thor", label: "Jetson Thor" },
 ];
 
-const STATION_QR_CODES = [
-  "/Station_1_QR_Code.png",
-  "/Station_2_QR_Code.png",
-  "/Station_3_QR_Code.png",
-];
-
 const CORRECT_ANSWERS = [
   "Vera Rubin NVL72 Compute Tray", // Station 1
   "RTX PRO 4500 BSE AC PCIe", // Station 2

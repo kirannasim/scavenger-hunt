@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 const STATION_QR_CODES = [
   "/Station_1_QR_Code.png",
@@ -10,7 +10,7 @@ const STATION_QR_CODES = [
   "/Station_3_QR_Code.png",
 ];
 
-export default function ScanPage() {
+function ScanInner() {
   const [error, setError] = useState<string | null>(null);
   const [permission, setPermission] = useState<"idle" | "requesting" | "granted" | "denied">("idle");
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -105,6 +105,24 @@ export default function ScanPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function ScanPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[rgb(13,_11,_26)] text-white flex items-center justify-center px-4 py-8">
+          <main className="w-full max-w-[320px]">
+            <div className="text-center text-[13px] text-[rgb(193,_190,_198)]">
+              Loading scanner…
+            </div>
+          </main>
+        </div>
+      }
+    >
+      <ScanInner />
+    </Suspense>
   );
 }
 

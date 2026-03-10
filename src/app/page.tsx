@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import Link from "next/link";
 
 const STATUS_COOKIE_NAME = "station_status";
 const VALID_STATUSES = ["idle", "correct", "incorrect"] as const;
