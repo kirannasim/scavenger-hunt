@@ -6,7 +6,7 @@ import Image from "next/image";
 function ScanInner() {
   const [error, setError] = useState<string | null>(null);
   const [scannedText, setScannedText] = useState<string | null>(null);
-  const scannerRef = useRef<any | null>(null);
+  const qrCodeRef = useRef<any | null>(null);
   const readerId = "html5qr-reader";
 
   useEffect(() => {
@@ -16,14 +16,15 @@ function ScanInner() {
       try {
         if (typeof window === "undefined") return;
 
-        const { Html5QrcodeScanner, Html5QrcodeScanType } = await import("html5-qrcode");
+        const { Html5Qrcode } = await import("html5-qrcode");
         if (cancelled) return;
+
+        const html5QrCode = new Html5Qrcode(readerId);
+        qrCodeRef.current = html5QrCode;
 
         const config = {
           fps: 10,
           qrbox: { width: 300, height: 300 },
-          rememberLastUsedCamera: true,
-          supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
         };
 
         const onScanSuccess = (decodedText: string) => {
@@ -39,9 +40,12 @@ function ScanInner() {
           // ignore continuous scan errors
         };
 
-        const scanner = new Html5QrcodeScanner(readerId, config, false);
-        scannerRef.current = scanner;
-        scanner.render(onScanSuccess, onScanError);
+        await html5QrCode.start(
+          { facingMode: "environment" }, // prefer back camera on phones
+          config,
+          onScanSuccess,
+          onScanError
+        );
       } catch (e: any) {
         console.error(e);
         setError(e?.message || "Could not start HTML5 QR scanner.");
@@ -52,9 +56,12 @@ function ScanInner() {
 
     return () => {
       cancelled = true;
-      if (scannerRef.current) {
-        scannerRef.current.clear().catch(() => undefined);
-        scannerRef.current = null;
+      if (qrCodeRef.current) {
+        qrCodeRef.current
+          .stop()
+          .then(() => qrCodeRef.current?.clear())
+          .catch(() => undefined);
+        qrCodeRef.current = null;
       }
     };
   }, []);
