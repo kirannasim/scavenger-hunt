@@ -17,6 +17,7 @@ function ScanInner() {
   const [error, setError] = useState<string | null>(null);
   const [permission, setPermission] = useState<"idle" | "requesting" | "granted" | "denied">("idle");
   const [userGestureRequired, setUserGestureRequired] = useState(false);
+  const [scannedText, setScannedText] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
@@ -58,6 +59,67 @@ function ScanInner() {
       videoRef.current.srcObject = streamRef.current;
     }
   }, [permission]);  
+
+  // QR code scanning using the built-in BarcodeDetector API when available
+  useEffect(() => {
+    if (permission !== "granted") return;
+    if (typeof window === "undefined") return;
+
+    const BarcodeDetectorCtor = (window as any).BarcodeDetector;
+    if (!BarcodeDetectorCtor) {
+      // Do not spam the user if there is already another error
+      setError((prev) =>
+        prev ?? "QR scanning is not supported in this browser. Please use a modern mobile browser like Chrome."
+      );
+      return;
+    }
+
+    let cancelled = false;
+    const video = videoRef.current;
+    if (!video) return;
+
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    const detector = new BarcodeDetectorCtor({ formats: ["qr_code"] });
+
+    const scanFrame = async () => {
+      if (cancelled) return;
+      if (video.readyState === video.HAVE_ENOUGH_DATA && ctx) {
+        canvas.width = video.videoWidth || 640;
+        canvas.height = video.videoHeight || 480;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        try {
+          const barcodes = await detector.detect(canvas);
+          if (barcodes && barcodes.length > 0) {
+            const text: string | undefined = barcodes[0]?.rawValue;
+            if (text) {
+              setScannedText(text);
+              // Stop camera before navigating away
+              streamRef.current?.getTracks().forEach((track) => track.stop());
+              streamRef.current = null;
+
+              // If it's a URL, navigate to it; otherwise show the raw text
+              if (/^https?:\/\//i.test(text)) {
+                window.location.href = text;
+              } else {
+                setError("Scanned QR code is not a URL. Content: " + text);
+              }
+              return;
+            }
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+      requestAnimationFrame(scanFrame);
+    };
+
+    scanFrame();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [permission]);
 
   return (
     <div className="min-h-screen bg-[rgb(13,_11,_26)] text-white flex items-center justify-center px-4 py-8">
@@ -119,6 +181,14 @@ function ScanInner() {
                 muted
                 className="w-full aspect-square max-h-[300px] object-cover rounded-lg"
               />
+              <p className="text-[11px] text-[rgb(193,_190,_198)] mt-2 text-center">
+                Align the printed QR code inside the frame to scan.
+              </p>
+              {scannedText && (
+                <p className="text-[11px] text-[rgb(193,_190,_198)] mt-1 text-center break-words">
+                  Last scanned: {scannedText}
+                </p>
+              )}
             </div>
           )}
         </div>
