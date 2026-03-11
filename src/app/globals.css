@@ -31,3 +31,7 @@ body {
 .font-aws-diatype-rounded {
   font-family: var(--font-aws-diatype-rounded), sans-serif;
 }
+
+#html5qr-reader__scan_region img {
+  display: inline-block;
+}
