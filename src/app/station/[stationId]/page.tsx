@@ -153,7 +153,8 @@ export default function StationQuestionPage() {
     } else {
       // router.push(`/station/${nextStation}?status=qr_code`);
       // Open lens screen to start scanning QR code
-      router.push(`/scan?stationId=${nextStation}`);
+      router.push("/scan");
+      return;
     }    
   };
 

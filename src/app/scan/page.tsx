@@ -1,29 +1,31 @@
 "use client";
 
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { useSearchParams } from "next/navigation";
 
-const STATION_QR_CODES = [
-  "/Station_1_QR_Code.png",
-  "/Station_2_QR_Code.png",
-  "/Station_3_QR_Code.png",
-];
+// Mobile-friendly camera constraints (back camera on phones)
+const CAMERA_CONSTRAINTS: MediaStreamConstraints = {
+  video: {
+    facingMode: "environment",
+    width: { ideal: 1280 },
+    height: { ideal: 720 },
+  },
+  audio: false,
+};
 
 function ScanInner() {
   const [error, setError] = useState<string | null>(null);
   const [permission, setPermission] = useState<"idle" | "requesting" | "granted" | "denied">("idle");
+  const [userGestureRequired, setUserGestureRequired] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
-  const searchParams = useSearchParams();
-  const stationIdParam = searchParams?.get("stationId") ?? "1";
-  const stationIndex = Number.parseInt(stationIdParam, 10);
-
-  useEffect(() => {
+  const startCamera = useCallback(() => {
+    setError(null);
+    setUserGestureRequired(false);
     setPermission("requesting");
     navigator.mediaDevices
-      .getUserMedia({ video: { facingMode: "environment" } })
+      .getUserMedia(CAMERA_CONSTRAINTS)
       .then((stream) => {
         streamRef.current = stream;
         if (videoRef.current) {
@@ -34,13 +36,28 @@ function ScanInner() {
       .catch((err: Error) => {
         setPermission("denied");
         setError(err.message || "Could not access camera");
+        // Some mobile browsers (e.g. iOS Safari) require a user gesture
+        if (/iPhone|iPad|iPod|Safari/i.test(navigator.userAgent)) {
+          setUserGestureRequired(true);
+        }
       });
+  }, []);
 
+  useEffect(() => {
+    if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) return;
+    startCamera();
     return () => {
       streamRef.current?.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
     };
-  }, []);  
+  }, [startCamera]);
+
+  // Attach stream to video when it mounts (e.g. after permission granted)
+  useEffect(() => {
+    if (permission === "granted" && videoRef.current && streamRef.current) {
+      videoRef.current.srcObject = streamRef.current;
+    }
+  }, [permission]);  
 
   return (
     <div className="min-h-screen bg-[rgb(13,_11,_26)] text-white flex items-center justify-center px-4 py-8">
@@ -71,9 +88,22 @@ function ScanInner() {
           )}
           
           {permission === "denied" && (
-            <p className="text-[rgb(193,_190,_198)] text-[13px] text-center mb-4">
-              Allow camera access in your browser settings, then refresh.
-            </p>
+            <>
+              <p className="text-[rgb(193,_190,_198)] text-[13px] text-center mb-4">
+                {userGestureRequired
+                  ? "Tap the button below to open the camera."
+                  : "Allow camera access in your browser settings, then refresh."}
+              </p>
+              {userGestureRequired && (
+                <button
+                  type="button"
+                  onClick={startCamera}
+                  className="px-4 py-2 bg-[#C6A0FF] text-[rgb(13,_11,_26)] rounded-lg font-medium text-sm mb-4"
+                >
+                  Open camera
+                </button>
+              )}
+            </>
           )}
 
           {permission === "requesting" && (
@@ -82,26 +112,15 @@ function ScanInner() {
 
           {permission === "granted" && (
             <div className="w-full max-w-[320px]">
-              <Image
-                src={STATION_QR_CODES[stationIndex - 1]}
-                alt="QR Code"
-                width={300}
-                height={300}
-                className="w-full h-auto"
-              />
               <video
                 ref={videoRef}
                 autoPlay
                 playsInline
                 muted
-                className="w-full h-full object-cover hidden"
+                className="w-full aspect-square max-h-[300px] object-cover rounded-lg"
               />
             </div>
           )}
-
-          <p className="text-[11px] text-[rgb(193,_190,_198)] mt-4 text-center">
-            Point your camera at the station&apos;s QR code.
-          </p>
         </div>
       </main>
     </div>

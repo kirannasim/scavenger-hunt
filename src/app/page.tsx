@@ -48,7 +48,8 @@ export default function Home() {
       router.push("/results");
       return;
     } else {
-      router.push(`/scan?stationId=${nextStation}`);
+      router.push("/scan");
+      return;
     }
   };
 
