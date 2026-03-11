@@ -2,16 +2,13 @@
 
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
-
-// Mobile-friendly camera constraints (back camera on phones)
-const CAMERA_CONSTRAINTS: MediaStreamConstraints = {
-  video: {
-    facingMode: "environment",
-    width: { ideal: 1280 },
-    height: { ideal: 720 },
-  },
-  audio: false,
-};
+// ZXing is used for cross-browser QR scanning (including iOS Safari and Android).
+// Make sure to install it in your project:
+//   npm install @zxing/browser
+// or
+//   yarn add @zxing/browser
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { BrowserQRCodeReader } = require("@zxing/browser");
 
 function ScanInner() {
   const [error, setError] = useState<string | null>(null);
@@ -19,84 +16,46 @@ function ScanInner() {
   const [userGestureRequired, setUserGestureRequired] = useState(false);
   const [scannedText, setScannedText] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
+  const controlsRef = useRef<any | null>(null);
 
-  const startCamera = useCallback(() => {
-    setError(null);
-    setUserGestureRequired(false);
-    setPermission("requesting");
-    navigator.mediaDevices
-      .getUserMedia(CAMERA_CONSTRAINTS)
-      .then((stream) => {
-        streamRef.current = stream;
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-        setPermission("granted");
-      })
-      .catch((err: Error) => {
-        setPermission("denied");
-        setError(err.message || "Could not access camera");
-        // Some mobile browsers (e.g. iOS Safari) require a user gesture
-        if (/iPhone|iPad|iPod|Safari/i.test(navigator.userAgent)) {
-          setUserGestureRequired(true);
-        }
-      });
-  }, []);
+  const startScan = useCallback(
+    (fromUserGesture = false) => {
+      if (typeof window === "undefined") return;
+      if (!navigator.mediaDevices?.getUserMedia) {
+        setError("Camera is not supported in this browser.");
+        return;
+      }
 
-  useEffect(() => {
-    if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) return;
-    startCamera();
-    return () => {
-      streamRef.current?.getTracks().forEach((track) => track.stop());
-      streamRef.current = null;
-    };
-  }, [startCamera]);
+      const video = videoRef.current;
+      if (!video) return;
 
-  // Attach stream to video when it mounts (e.g. after permission granted)
-  useEffect(() => {
-    if (permission === "granted" && videoRef.current && streamRef.current) {
-      videoRef.current.srcObject = streamRef.current;
-    }
-  }, [permission]);  
+      setError(null);
+      setUserGestureRequired(false);
+      setPermission("requesting");
 
-  // QR code scanning using the built-in BarcodeDetector API when available
-  useEffect(() => {
-    if (permission !== "granted") return;
-    if (typeof window === "undefined") return;
+      const codeReader = new BrowserQRCodeReader();
 
-    const BarcodeDetectorCtor = (window as any).BarcodeDetector;
-    if (!BarcodeDetectorCtor) {
-      // Do not spam the user if there is already another error
-      setError((prev) =>
-        prev ?? "QR scanning is not supported in this browser. Please use a modern mobile browser like Chrome."
-      );
-      return;
-    }
+      codeReader
+        .decodeFromConstraints(
+          {
+            video: {
+              facingMode: { ideal: "environment" },
+            },
+          },
+          video,
+          (result: any, err: any, controls: any) => {
+            if (controls && !controlsRef.current) {
+              controlsRef.current = controls;
+            }
 
-    let cancelled = false;
-    const video = videoRef.current;
-    if (!video) return;
-
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-    const detector = new BarcodeDetectorCtor({ formats: ["qr_code"] });
-
-    const scanFrame = async () => {
-      if (cancelled) return;
-      if (video.readyState === video.HAVE_ENOUGH_DATA && ctx) {
-        canvas.width = video.videoWidth || 640;
-        canvas.height = video.videoHeight || 480;
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        try {
-          const barcodes = await detector.detect(canvas);
-          if (barcodes && barcodes.length > 0) {
-            const text: string | undefined = barcodes[0]?.rawValue;
-            if (text) {
+            if (result) {
+              const text = result.getText();
               setScannedText(text);
-              // Stop camera before navigating away
-              streamRef.current?.getTracks().forEach((track) => track.stop());
-              streamRef.current = null;
+
+              // Stop scanning once we have a result
+              if (controls) {
+                controls.stop();
+              }
 
               // If it's a URL, navigate to it; otherwise show the raw text
               if (/^https?:\/\//i.test(text)) {
@@ -104,22 +63,42 @@ function ScanInner() {
               } else {
                 setError("Scanned QR code is not a URL. Content: " + text);
               }
-              return;
             }
           }
-        } catch (e) {
-          console.error(e);
-        }
-      }
-      requestAnimationFrame(scanFrame);
-    };
+        )
+        .then((controls: any) => {
+          controlsRef.current = controls;
+          setPermission("granted");
+        })
+        .catch((err: any) => {
+          console.error(err);
+          setPermission("denied");
+          setError(err?.message || "Could not access camera");
 
-    scanFrame();
+          // Some mobile browsers (e.g. iOS Safari) may require a user gesture
+          if (
+            !fromUserGesture &&
+            typeof navigator !== "undefined" &&
+            /iPhone|iPad|iPod|Safari/i.test(navigator.userAgent)
+          ) {
+            setUserGestureRequired(true);
+          }
+        });
+    },
+    []
+  );
+
+  useEffect(() => {
+    // Try to start scanning automatically
+    startScan(false);
 
     return () => {
-      cancelled = true;
+      if (controlsRef.current) {
+        controlsRef.current.stop();
+        controlsRef.current = null;
+      }
     };
-  }, [permission]);
+  }, [startScan]);
 
   return (
     <div className="min-h-screen bg-[rgb(13,_11,_26)] text-white flex items-center justify-center px-4 py-8">
@@ -159,7 +138,7 @@ function ScanInner() {
               {userGestureRequired && (
                 <button
                   type="button"
-                  onClick={startCamera}
+                  onClick={() => startScan(true)}
                   className="px-4 py-2 bg-[#C6A0FF] text-[rgb(13,_11,_26)] rounded-lg font-medium text-sm mb-4"
                 >
                   Open camera
