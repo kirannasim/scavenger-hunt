@@ -2,10 +2,12 @@
 
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 type PermissionState = "unknown" | "granted" | "denied" | "prompt";
 
 function ScanInner() {
+  const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [scannedText, setScannedText] = useState<string | null>(null);
   const [permissionState, setPermissionState] = useState<PermissionState>("unknown");
@@ -36,7 +38,7 @@ function ScanInner() {
       const onScanSuccess = (decodedText: string) => {
         setScannedText(decodedText);
         if (/^https?:\/\//i.test(decodedText)) {
-          window.location.href = decodedText;
+          router.push(decodedText);
         } else {
           setError("Scanned QR code is not a URL. Content: " + decodedText);
         }
@@ -99,13 +101,13 @@ function ScanInner() {
     return () => {
       mountedRef.current = false;
       cancelled = true;
-      if (qrCodeRef.current) {
-        qrCodeRef.current
-          .stop()
-          .then(() => qrCodeRef.current?.clear())
-          .catch(() => undefined);
-        qrCodeRef.current = null;
-      }
+      // if (qrCodeRef.current) {
+      //   qrCodeRef.current
+      //     .stop()
+      //     .then(() => qrCodeRef.current?.clear())
+      //     .catch(() => undefined);
+      //   qrCodeRef.current = null;
+      // }
     };
   }, [startScanner]);
 
