@@ -87,6 +87,7 @@ function ScanInner() {
             return;
           }
           setPermissionState("prompt");
+          alert("prompt: point 1");
           return;
         }
       } catch {
@@ -94,6 +95,7 @@ function ScanInner() {
       }
       if (cancelled) return;
       setPermissionState("prompt");
+      alert("prompt: point 2");
     }
 
     checkAndMaybeStart();
