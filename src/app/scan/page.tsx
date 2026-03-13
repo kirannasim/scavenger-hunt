@@ -86,8 +86,7 @@ function ScanInner() {
             setError("Camera access was previously denied. Enable it in your browser settings.");
             return;
           }
-          setPermissionState("prompt");
-          alert("prompt: point 1");
+          setPermissionState("prompt");          
           return;
         }
       } catch {
@@ -95,7 +94,6 @@ function ScanInner() {
       }
       if (cancelled) return;
       setPermissionState("prompt");
-      alert("prompt: point 2");
     }
 
     checkAndMaybeStart();
