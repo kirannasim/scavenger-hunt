@@ -27,8 +27,14 @@ function ScanInner() {
       const { Html5Qrcode } = await import("html5-qrcode");
       if (!mountedRef.current) return;
 
-      const html5QrCode = new Html5Qrcode(readerId);
-      qrCodeRef.current = html5QrCode;
+      // const html5QrCode = new Html5Qrcode(readerId);
+      // qrCodeRef.current = html5QrCode;
+
+      if (!qrCodeRef.current) {
+        qrCodeRef.current = new Html5Qrcode(readerId);
+      }
+
+      const html5QrCode = qrCodeRef.current;
 
       const config = {
         fps: 10,
